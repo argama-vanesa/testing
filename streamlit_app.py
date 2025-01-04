@@ -281,3 +281,16 @@ def main():
     elif role == "apotek":
         # Tampilan untuk apotek jika diperlukan
         st.write("Tampilan untuk apotek.")
+if __name__ == "__main__":
+    # Membuat koneksi ke database
+    conn = sqlite3.connect('hospital_app.db')
+
+    # Membuat tabel
+    create_tables(conn)
+
+    # Menambahkan data awal
+    insert_initial_values(conn)
+
+    # Tutup koneksi
+    conn.close()
+    
