@@ -139,11 +139,6 @@ def doctor_prescription_ui(conn, doctor_id, queue_number):
     try:
         cursor = conn.cursor()
 
-        # Debugging: Periksa apakah dokter dengan ID 1 ada di database
-        cursor.execute('SELECT username, role FROM Users WHERE id = 1')
-        doctor_check = cursor.fetchone()
-        st.write(f"Doctor Check: {doctor_check}")  # Tampilkan hasilnya di Streamlit
-
         # Ambil informasi dokter berdasarkan ID
         cursor.execute('''
             SELECT doctor_name, doctor_sip, hospital_address,
@@ -223,7 +218,22 @@ def doctor_prescription_ui(conn, doctor_id, queue_number):
             )
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
+if __name__ == "__main__":
+    # Buat koneksi ke database SQLite
+    conn = sqlite3.connect("pharmily.db")
+    create_tables(conn)
 
+    # Judul aplikasi
+    st.title("Aplikasi Resep Dokter Elektronik")
+
+    # Pilihan role pengguna
+    role = st.sidebar.selectbox("Pilih Role", ["Dokter", "Apotek", "Pasien"])
+
+    if role == "Dokter":
+        doctor_id = st.sidebar.text_input("Masukkan ID Dokter", type="password")
+        queue_number = st.text_input("Masukkan Nomor Antrian")
+        if st.button("Proses Resep"):
+            doctor_prescription_ui(conn, doctor_id, queue_number)
 
 def insert_initial_values(conn):
     cursor = conn.cursor()
