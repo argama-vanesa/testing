@@ -169,7 +169,7 @@ def doctor_prescription_ui(conn, doctor_id, queue_number):
         doctor_name, doctor_sip, hospital_address, hospital_contact, hospital_name = hospital_info
         patient_name, patient_age, patient_gender, patient_address = patient_info
 
-        st.write(f"Data Pasien: {patient_name}, {patient_age} tahun, {patient_gender}, {patient_address}")
+        st.write(f"Data Pasien: {patient_name}, {patient_age} tahun, {patient_gender}, {patient_address}.")
 
         # Input resep oleh dokter
         prescriptions = input_prescriptions()
@@ -218,22 +218,6 @@ def doctor_prescription_ui(conn, doctor_id, queue_number):
             )
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
-if __name__ == "__main__":
-    # Buat koneksi ke database SQLite
-    conn = sqlite3.connect("pharmily.db")
-    create_tables(conn)
-
-    # Judul aplikasi
-    st.title("Aplikasi Resep Dokter Elektronik")
-
-    # Pilihan role pengguna
-    role = st.sidebar.selectbox("Pilih Role", ["Dokter", "Apotek", "Pasien"])
-
-    if role == "Dokter":
-        doctor_id = st.sidebar.text_input("Masukkan ID Dokter", type="password")
-        queue_number = st.text_input("Masukkan Nomor Antrian")
-        if st.button("Proses Resep"):
-            doctor_prescription_ui(conn, doctor_id, queue_number)
 
 def insert_initial_values(conn):
     cursor = conn.cursor()
@@ -259,27 +243,41 @@ def insert_initial_values(conn):
         ''')
 
     # Cek apakah nomor antrean untuk pasien 'pasien1' sudah ada
-    cursor.execute("SELECT COUNT(*) FROM QueueNumber WHERE queue_number = 'A001'")
+    cursor.execute("SELECT COUNT(*) FROM QueueNumber WHERE patient_id = (SELECT id FROM Users WHERE username = 'pasien1')")
     if cursor.fetchone()[0] == 0:
-        # Menambahkan nomor antrean
+        # Menambahkan nomor antrean untuk pasien 'pasien1'
         cursor.execute('''
             INSERT INTO QueueNumber (patient_id, doctor_id, queue_number, created_at)
             VALUES 
-            (2, 1, 'A001', datetime('now', 'localtime'))
+            ((SELECT id FROM Users WHERE username = 'pasien1'),
+             (SELECT id FROM Users WHERE username = 'dokter1'),
+             'A001', '2025-01-04 10:00:00')
         ''')
 
     conn.commit()
-    print("Data awal berhasil ditambahkan ke database.")
 
-if __name__ == "__main__":
-    # Membuat koneksi ke database
-    conn = sqlite3.connect('hospital_app.db')
-
-    # Membuat tabel
+def main():
+    conn = sqlite3.connect('database.db')
     create_tables(conn)
 
-    # Menambahkan data awal
+    # Panggil insert_initial_values untuk memasukkan data awal hanya jika belum ada
     insert_initial_values(conn)
 
-    # Tutup koneksi
-    conn.close()
+    st.title("Aplikasi Resep Digital")
+
+    # Login dan pilih dokter
+    role = st.radio("Pilih Peran", ["dokter", "pasien", "apotek"])
+
+    if role == "dokter":
+        doctor_id = st.text_input("Masukkan ID Dokter", "1")  # ID dokter untuk tes
+        queue_number = st.text_input("Masukkan Nomor Antrian Pasien")
+        if st.button("Buat Resep"):
+            doctor_prescription_ui(conn, doctor_id, queue_number)
+
+    elif role == "pasien":
+        # Tampilan untuk pasien jika diperlukan
+        st.write("Tampilan untuk pasien.")
+
+    elif role == "apotek":
+        # Tampilan untuk apotek jika diperlukan
+        st.write("Tampilan untuk apotek.")
