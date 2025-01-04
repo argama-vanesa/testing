@@ -242,8 +242,5 @@ if __name__ == "__main__":
     # Membuat tabel
     create_tables(conn)
 
-    # Menambahkan data awal
-    insert_initial_values(conn)
-
     # Tutup koneksi
     conn.close()
